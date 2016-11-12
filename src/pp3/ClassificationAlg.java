@@ -4,10 +4,15 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import Jama.Matrix;
 
 public class ClassificationAlg {
@@ -147,9 +152,11 @@ public class ClassificationAlg {
 		int data_size = data.length;
 		int dimension = data[0].length;
 		double[][] testing_data = getFirstNData(data, n);
+		//System.out.println(n + " " + data_size + " " + testing_data.length);
 		double[][] training_data = new double[data_size-n][dimension];
 		for (int i = n; i < data_size - 1; i++) {
-			training_data[i] = data[i];
+			int index = i - n;
+			training_data[index] = data[i];
 		}
 		split_reuslts.add(training_data);
 		split_reuslts.add(testing_data);
@@ -165,13 +172,23 @@ public class ClassificationAlg {
 	    return data_records.toArray(new double[][]{});
 	}
 	
-	public static double sigmoidPredict(double a) {
+	public static int sigmoidPredict(double a) {
 		double sigmoid = 1 / (1 + Math.exp(a));
-		if (sigmoid > 1/2) {
-			return (double) 1;
+		if (sigmoid >= 0.5) {
+			return 1;
 		} else {
-			return (double) 0;
+			return 0;
 		}
+	}
+	
+	public static void writeDataToFile(HashMap<Integer, double[]> error_statics, String outputFile) throws Exception {
+		PrintWriter writer  = new PrintWriter(outputFile, "UTF-8");
+		for (Map.Entry<Integer, double[]> entry : error_statics.entrySet()) {
+			int key = entry.getKey();
+			double[] statics = entry.getValue();
+			writer.println(key + "," + statics[0] + "," + statics[1]);
+		}
+		writer.close();
 	}
 	
 	public static void main(String[] args) throws Exception{
@@ -198,10 +215,12 @@ public class ClassificationAlg {
 		List<Double> ns = GenerativeAlg.countNs(data_by_class);
 		System.out.println(Arrays.deepToString(ns.toArray()));
 		System.out.println("++++++++++++++");
-		List<Double> mus = GenerativeAlg.calculateMus(data_by_class);
-		System.out.println(Arrays.deepToString(mus.toArray()));
+		List<Matrix> mus = GenerativeAlg.calculateMus(data_by_class);
+		System.out.println(Arrays.deepToString(mus.get(0).getArray()));
+		System.out.println(Arrays.deepToString(mus.get(1).getArray()));
 		System.out.println("~~~~~~~~~~~~~");
-		Matrix s = GenerativeAlg.calculateS(data_by_class);
-		System.out.println(Arrays.deepToString(s.getArray()));
+//		Matrix s = GenerativeAlg.calculateS(data_by_class);
+//		System.out.println(Arrays.deepToString(s.getArray()));
+		//Task1.runTask1();
 	}
 }
