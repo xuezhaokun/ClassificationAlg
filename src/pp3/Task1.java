@@ -10,11 +10,12 @@ import Jama.Matrix;
 
 public class Task1 {
 	
-	public static HashMap<Integer, List<Double>> predict(double[][] data_with_labels) { 
+	public static List<HashMap<Integer, List<Double>>> predict(double[][] data_with_labels) { 
 		int data_size = data_with_labels.length;
 		int testing_size = data_size / 3;
 		int training_size = data_size - testing_size;
-		HashMap<Integer, List<Double>> predict_results = new HashMap<Integer, List<Double>>();
+		HashMap<Integer, List<Double>> generative_predict_results = new HashMap<Integer, List<Double>>();
+		HashMap<Integer, List<Double>> discriminative_predict_results = new HashMap<Integer, List<Double>>();
 		for (int i = 0; i < 30; i++) {
 			double[][] shuffled_data = ClassificationAlg.shuffleData(data_with_labels);
 			List<double[][]> splitted_data = ClassificationAlg.splitTestAndTrain(shuffled_data, testing_size);
@@ -22,6 +23,7 @@ public class Task1 {
 			double[][] testing_data_with_labels = splitted_data.get(1);
 			double[][] testing_data = ClassificationAlg.getDataFromDataWithLabels(testing_data_with_labels);
 			double[] testing_labels = ClassificationAlg.getLabelsFromDataWithLabels(testing_data_with_labels);
+			
 			for (int k = 1; k < 11; k++) {
 				int n = 0;
 				if (k == 10) {
@@ -29,45 +31,15 @@ public class Task1 {
 				} else {
 					n = (training_size/10) * k;
 				}
-
-				double[][] current_training_data = ClassificationAlg.getFirstNData(training_data_with_labels, n);
-				List<double[][]> data_by_class = GenerativeAlg.splitDataByClass(current_training_data);
-				double[][] data_in_c1 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(0));
-				double[][] data_in_c2 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(1));
-				List<Double> ns = GenerativeAlg.countNs(data_by_class);
-				List<Matrix> mus = GenerativeAlg.calculateMus(data_by_class);
-				Matrix mu1 = mus.get(0);
-				Matrix mu2 = mus.get(1);
-				Matrix s1 = GenerativeAlg.calculateSForClass(data_in_c1, mu1);
-				Matrix s2 = GenerativeAlg.calculateSForClass(data_in_c2, mu2);
-				Matrix s = GenerativeAlg.calculateS (s1, s2, ns);
-				double w0 =  GenerativeAlg.calculateW0 (mu1, mu2, s, ns);
-				Matrix w = GenerativeAlg.calculateW (mu1, mu2, s);
-				double errors = 0;
-				for (int j = 0; j < testing_data.length; j++) {
-					Matrix t_j = new Matrix(testing_data[j], 1).transpose();
-					//System.out.println("t_j row: " + t_j.getRowDimension() + " t_j col: " + t_j.getColumnDimension());
-					double a_value = w.transpose().times(t_j).get(0,0) + w0;
-					int predict_class = ClassificationAlg.sigmoidPredict(a_value);
-					int true_label = (int)testing_labels[j];
-					if (predict_class != true_label) {
-						errors++;
-					}
-				}
-
-				double error_rate = errors / (double)(testing_labels.length);
-				if (predict_results.containsKey(n)) {
-					List<Double> predicts = predict_results.get(n);
-					predicts.add(error_rate);
-					predict_results.put(n, predicts);
-				} else {
-					List<Double> predicts = new ArrayList<Double>();
-					predicts.add(error_rate);
-					predict_results.put(n, predicts);
-				}
+				double[][] current_training_data_with_labels = ClassificationAlg.getFirstNData(training_data_with_labels, n);
+				GenerativeAlg.generativePredict(generative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
+				DiscriminativeAlg.discriminativePredict(discriminative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
 			}
 		}
-		return predict_results;
+		List<HashMap<Integer, List<Double>>> predicts = new ArrayList<HashMap<Integer, List<Double>>>();
+		predicts.add(generative_predict_results);
+		predicts.add(discriminative_predict_results);
+		return predicts;
 	}
 
 	
@@ -90,11 +62,15 @@ public class Task1 {
 		String dataPath = "data/";
 		String dataA = dataPath + "A.csv";
 		String dataA_labels = dataPath + "labels-A.csv";
-		double[][] dataA_with_labels = GenerativeAlg.readData(dataA, dataA_labels);
-		HashMap<Integer, List<Double>> predicts = predict(dataA_with_labels);
-		HashMap<Integer, double[]> predicts_stat = getStatics(predicts);
-		String outputA = "results/predicts-A.csv";
-		ClassificationAlg.writeDataToFile(predicts_stat, outputA);
+		double[][] dataA_with_labels = ClassificationAlg.combineData(dataA, dataA_labels);
+		HashMap<Integer, List<Double>> generative_predicts = predict(dataA_with_labels).get(0);
+		HashMap<Integer, List<Double>> discriminative_predicts = predict(dataA_with_labels).get(1);
+		HashMap<Integer, double[]> generative_predicts_stat = getStatics(generative_predicts);
+		HashMap<Integer, double[]> discriminative_predicts_stat = getStatics(discriminative_predicts);
+		String outputA = "results/generative-predicts-A.csv";
+		String outputB = "results/discriminative-predicts-A.csv";
+		ClassificationAlg.writeDataToFile(generative_predicts_stat, outputA);
+		ClassificationAlg.writeDataToFile(discriminative_predicts_stat, outputB);
 		
 //		System.out.println("##############");
 //		for (Map.Entry<Integer, List<Double>> entry : predicts.entrySet()) {

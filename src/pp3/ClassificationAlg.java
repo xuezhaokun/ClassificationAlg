@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,6 +99,11 @@ public class ClassificationAlg {
 		return data_with_labels;
 	}
 	
+	public static double[][] combineData(String data_file, String label_file) throws IOException {
+		double[][] dataset = ClassificationAlg.readData(data_file);
+		double[] labels = ClassificationAlg.readLabels(label_file);
+		return ClassificationAlg.combineDataWithLabels(dataset, labels);
+	}
 	
 	/**
 	 * Extract data from data with labels matrix
@@ -171,9 +175,14 @@ public class ClassificationAlg {
 	    return data_records.toArray(new double[][]{});
 	}
 	
+	public static double sigmoid(double a) {
+		double result = 1 / (1 + Math.exp(-a));
+		return result;
+	}
+	
 	public static int sigmoidPredict(double a) {
-		double sigmoid = 1 / (1 + Math.exp(-a));
-		if (sigmoid >= 0.5) {
+		double result = sigmoid(a);
+		if (result >= 0.5) {
 			return 1;
 		} else {
 			return 0;

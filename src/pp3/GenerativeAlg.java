@@ -3,15 +3,12 @@ package pp3;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import Jama.Matrix;
 
 public class GenerativeAlg {
-	public static double[][] readData(String data_file, String label_file) throws IOException {
-		double[][] dataset = ClassificationAlg.readData(data_file);
-		double[] labels = ClassificationAlg.readLabels(label_file);
-		return ClassificationAlg.combineDataWithLabels(dataset, labels);
-	}
+
 
 	public static List<double[][]> splitDataByClass(double[][] data_with_labels) {
 		int dimension = data_with_labels[0].length;
@@ -121,5 +118,42 @@ public class GenerativeAlg {
 		Matrix diff = mu1.minus(mu2);
 		Matrix w = s.inverse().times(diff);
 		return w;
+	}
+	
+	public static void generativePredict(HashMap<Integer, List<Double>> predict_results, double[][] current_training_data_with_labels, 
+			double[][] testing_data, double[] testing_labels, int n){
+		List<double[][]> data_by_class = splitDataByClass(current_training_data_with_labels);
+		double[][] data_in_c1 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(0));
+		double[][] data_in_c2 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(1));
+		List<Double> ns = countNs(data_by_class);
+		List<Matrix> mus = calculateMus(data_by_class);
+		Matrix mu1 = mus.get(0);
+		Matrix mu2 = mus.get(1);
+		Matrix s1 = calculateSForClass(data_in_c1, mu1);
+		Matrix s2 = calculateSForClass(data_in_c2, mu2);
+		Matrix s = calculateS (s1, s2, ns);
+		double w0 =  calculateW0 (mu1, mu2, s, ns);
+		Matrix w = calculateW (mu1, mu2, s);
+		double errors = 0;
+		for (int j = 0; j < testing_data.length; j++) {
+			Matrix t_j = new Matrix(testing_data[j], 1).transpose();
+			double a_value = w.transpose().times(t_j).get(0,0) + w0;
+			int predict_class = ClassificationAlg.sigmoidPredict(a_value);
+			int true_label = (int)testing_labels[j];
+			if (predict_class != true_label) {
+				errors++;
+			}
+		}
+
+		double error_rate = errors / (double)(testing_labels.length);
+		if (predict_results.containsKey(n)) {
+			List<Double> predicts = predict_results.get(n);
+			predicts.add(error_rate);
+			predict_results.put(n, predicts);
+		} else {
+			List<Double> predicts = new ArrayList<Double>();
+			predicts.add(error_rate);
+			predict_results.put(n, predicts);
+		}
 	}
 }
