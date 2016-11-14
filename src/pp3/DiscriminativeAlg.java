@@ -26,7 +26,7 @@ public class DiscriminativeAlg {
 		return r_y;
 	}
 	
-	public static Matrix updateW(Matrix phi_matrix, Matrix t_matrix, Matrix r, Matrix y, Matrix oldW) {
+	public static Matrix updateNewtonW(Matrix phi_matrix, Matrix t_matrix, Matrix r, Matrix y, Matrix oldW) {
 		int dimension = phi_matrix.getColumnDimension();
 		double alpha = 0.1;
 		Matrix identity = Matrix.identity(dimension, dimension).times(alpha);
@@ -37,6 +37,15 @@ public class DiscriminativeAlg {
 		Matrix update_part = hessian.inverse().times(error_gradient);
 		Matrix newW = oldW.minus(update_part);
 		return newW;
+	}
+	
+	public static Matrix updateGradientW(Matrix phi_matrix, Matrix t_matrix, Matrix y, Matrix oldW) {
+		double alpha = 0.1;
+		double eta = Math.pow(10, -3);
+		Matrix part1 = phi_matrix.transpose().times(y.minus(t_matrix));
+		Matrix part2 = oldW.times(alpha);
+		Matrix newW = part1.plus(part2).times(eta);
+		return oldW.minus(newW);
 	}
 	
 	public static Matrix calculateSn (Matrix phi_matrix, Matrix r) {
@@ -83,12 +92,26 @@ public class DiscriminativeAlg {
 		}
 	}
 	
+	public static double[][] addW0ToData(double[][] dataset){
+		int dimension = dataset[0].length;
+		int data_length = dataset.length;
+		double[][] data_with_w0 = new double[data_length][dimension + 1];
+		for (int i = 0; i < data_length; i++) {
+			for (int j = 0; j < dimension; j++) {
+				data_with_w0[i][j] = dataset[i][j];
+			}
+			data_with_w0[i][dimension] = (double)1;
+		}
+		return data_with_w0;
+	}
+	
 	public static void discriminativePredict (HashMap<Integer, List<Double>> predict_results, double[][] current_training_data_with_labels, 
 			double[][] testing_data, double[] testing_labels, int n) {
 		
 		boolean converged = false;
 		int counter = 0;
-		double[][] current_training_data = ClassificationAlg.getDataFromDataWithLabels(current_training_data_with_labels);
+		
+		double[][] current_training_data = addW0ToData(ClassificationAlg.getDataFromDataWithLabels(current_training_data_with_labels));
 		double[] current_training_labels = ClassificationAlg.getLabelsFromDataWithLabels(current_training_data_with_labels);
 		Matrix current_phi = new Matrix(current_training_data);
 		int data_n = current_phi.getRowDimension();
@@ -101,11 +124,12 @@ public class DiscriminativeAlg {
 		Arrays.fill(y, 0);
 		Matrix y_matrix = new Matrix(y, 1).transpose();
 		Matrix r = Matrix.identity(data_n, data_n);
+		Matrix new_w = null;
 		while (!converged && counter < 100) {
 			List<Matrix> r_y = calculateRandY(w_matrix, current_training_data);
 			r = r_y.get(0);
 			y_matrix = r_y.get(1);
-			Matrix new_w = updateW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
+			new_w = updateNewtonW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
 			converged = checkConverge(new_w, w_matrix);
 			w_matrix = new_w;
 			counter++;
@@ -114,8 +138,9 @@ public class DiscriminativeAlg {
 		double errors = 0;
 		System.out.println(Arrays.deepToString(y_matrix.getArray()));
 		Matrix sn = calculateSn(current_phi, r);
-		for (int j = 0; j < testing_data.length; j++) {
-			Matrix test_j = new Matrix(testing_data[j], 1).transpose();
+		double[][] test_data_with_w0 = addW0ToData(testing_data);
+		for (int j = 0; j < test_data_with_w0.length; j++) {
+			Matrix test_j = new Matrix(test_data_with_w0[j], 1).transpose();
 			double sigSq = calculateSigSq(test_j, sn);
 			double mua = calculateMua(test_j, w_matrix);
 			int predict_class = predictiveDist (mua, sigSq);
@@ -135,4 +160,6 @@ public class DiscriminativeAlg {
 			predict_results.put(n, predicts);
 		}
 	}
+	
+	
 }
