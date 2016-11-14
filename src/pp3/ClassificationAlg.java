@@ -152,9 +152,8 @@ public class ClassificationAlg {
 		int data_size = data.length;
 		int dimension = data[0].length;
 		double[][] testing_data = getFirstNData(data, n);
-		//System.out.println(n + " " + data_size + " " + testing_data.length);
 		double[][] training_data = new double[data_size-n][dimension];
-		for (int i = n; i < data_size - 1; i++) {
+		for (int i = n; i < data_size; i++) {
 			int index = i - n;
 			training_data[index] = data[i];
 		}
@@ -173,7 +172,7 @@ public class ClassificationAlg {
 	}
 	
 	public static int sigmoidPredict(double a) {
-		double sigmoid = 1 / (1 + Math.exp(a));
+		double sigmoid = 1 / (1 + Math.exp(-a));
 		if (sigmoid >= 0.5) {
 			return 1;
 		} else {
@@ -193,34 +192,49 @@ public class ClassificationAlg {
 	
 	public static void main(String[] args) throws Exception{
 		// TODO Auto-generated method stub
-		String dataPath = "data/";
-		String haha_data = dataPath + "haha.csv";
-		String haha_label = dataPath + "haha-labels.csv";
-		double[][] haha_dataset = ClassificationAlg.readData(haha_data);
-		double[] haha_labels = ClassificationAlg.readLabels(haha_label);
-		double[][] data_with_labels = ClassificationAlg.combineDataWithLabels(haha_dataset, haha_labels);
-		double[][] shuffled_data = ClassificationAlg.shuffleData(data_with_labels);
-		int data_size = shuffled_data.length;
-		int testing_size = data_size / 3;
-		int training_size = data_size - testing_size;
-		List<double[][]> split_results = ClassificationAlg.splitTestAndTrain(shuffled_data, testing_size);
-		System.out.println(Arrays.deepToString(split_results.get(0)));
-		System.out.println("-------------");
-		System.out.println(Arrays.deepToString(split_results.get(1)));
-		System.out.println("=============");
-		List<double[][]> data_by_class = GenerativeAlg.splitDataByClass(data_with_labels);
-		System.out.println(Arrays.deepToString(data_by_class.get(0)));
-		System.out.println("-------------");
-		System.out.println(Arrays.deepToString(data_by_class.get(1)));
-		List<Double> ns = GenerativeAlg.countNs(data_by_class);
-		System.out.println(Arrays.deepToString(ns.toArray()));
-		System.out.println("++++++++++++++");
-		List<Matrix> mus = GenerativeAlg.calculateMus(data_by_class);
-		System.out.println(Arrays.deepToString(mus.get(0).getArray()));
-		System.out.println(Arrays.deepToString(mus.get(1).getArray()));
-		System.out.println("~~~~~~~~~~~~~");
+//		String dataPath = "data/";
+//		String haha_data = dataPath + "haha.csv";
+//		String haha_label = dataPath + "haha-labels.csv";
+//		double[][] haha_dataset = ClassificationAlg.readData(haha_data);
+//		double[] haha_labels = ClassificationAlg.readLabels(haha_label);
+//		double[][] data_with_labels = ClassificationAlg.combineDataWithLabels(haha_dataset, haha_labels);
+//		double[][] shuffled_data = ClassificationAlg.shuffleData(data_with_labels);
+//		int data_size = shuffled_data.length;
+//		int testing_size = data_size / 3;
+//		int training_size = data_size - testing_size;
+//		System.out.println("testing size " + testing_size + " training_size " + training_size);
+//		List<double[][]> split_results = ClassificationAlg.splitTestAndTrain(shuffled_data, testing_size);
+//		System.out.println(Arrays.deepToString(split_results.get(0)));
+//		System.out.println("-------------");
+//		System.out.println(Arrays.deepToString(split_results.get(1)));
+//		System.out.println("=============");
+//		double[][] pure_data = ClassificationAlg.getDataFromDataWithLabels(data_with_labels);
+//		double[] pure_labels = ClassificationAlg.getLabelsFromDataWithLabels(data_with_labels);
+//		System.out.println(Arrays.deepToString(pure_data));
+//		System.out.println(Arrays.toString(pure_labels));
+//		System.out.println("~~~~~~~~~~~~");
+//
+//		List<double[][]> data_by_class = GenerativeAlg.splitDataByClass(data_with_labels);
+//		System.out.println(Arrays.deepToString(data_by_class.get(0)));
+//		System.out.println(Arrays.deepToString(data_by_class.get(1)));
+//		List<Double> ns = GenerativeAlg.countNs(data_by_class);
+//		System.out.println(Arrays.deepToString(ns.toArray()));
+//		System.out.println("++++++++++++++");
+//		List<Matrix> mus = GenerativeAlg.calculateMus(data_by_class);
+//		Matrix diff = mus.get(0).minus(mus.get(1));
+//		System.out.println(Arrays.toString(mus.get(0).getColumnPackedCopy()));
+//		System.out.println(Arrays.toString(mus.get(1).getColumnPackedCopy()));
+//		System.out.println("~~~~~~~~~~~~~");
+//		System.out.println(Arrays.toString(diff.getColumnPackedCopy()));
+//		System.out.println("--------------");
 //		Matrix s = GenerativeAlg.calculateS(data_by_class);
 //		System.out.println(Arrays.deepToString(s.getArray()));
-		//Task1.runTask1();
+//		System.out.println("col: " + s.getColumnDimension() + " row: " + s.getRowDimension());
+//		System.out.println(Arrays.deepToString(s.inverse().getArray()));
+//		Matrix w = GenerativeAlg.calculateW(s, mus);
+//		System.out.println(Arrays.deepToString(w.getArray()));
+//		Matrix s = GenerativeAlg.calculateS(data_by_class);
+//		System.out.println(Arrays.deepToString(s.getArray()));
+		Task1.runTask1();
 	}
 }

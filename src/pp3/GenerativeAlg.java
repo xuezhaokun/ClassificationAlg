@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import Jama.Matrix;
-import Jama.util.*;
 
 public class GenerativeAlg {
-	
 	public static double[][] readData(String data_file, String label_file) throws IOException {
 		double[][] dataset = ClassificationAlg.readData(data_file);
 		double[] labels = ClassificationAlg.readLabels(label_file);
@@ -40,7 +38,6 @@ public class GenerativeAlg {
 		ns.add(n2);
 		return ns;
 	}
-	
 	public static List<Matrix> calculateMus(List<double[][]> data_by_class) {
 		double[][] data_in_c1 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(0));
 		double[][] data_in_c2 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(1));
@@ -76,66 +73,53 @@ public class GenerativeAlg {
 		mus.add(mu2_Matrix);
 		return mus;
 	}
-	
-	public static Matrix calculateS(List<double[][]> data_by_class) {
-		double[][] data_in_c1 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(0));
-		double[][] data_in_c2 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(1));
-		int dimension = data_in_c1[0].length;
-		List<Double> mus = calculateMus(data_by_class);
-		double mu1 = mus.get(0);
-		double mu2 = mus.get(1);
-		List<Double> ns = countNs(data_by_class);
+
+	public static Matrix calculateSForClass (double[][] data_in_class, Matrix mu) {
+		double n = data_in_class.length;
+		int dimension = data_in_class[0].length;
+		List<Matrix> data_matrix = new ArrayList<Matrix>();
+		for (int i = 0; i < n; i++) {
+			Matrix x_i = new Matrix(data_in_class[i], 1).transpose();
+			data_matrix.add(x_i);
+		}
+		Matrix s_for_class = Matrix.identity(dimension, dimension).times(0);
+		for (Matrix x : data_matrix) {
+			
+			s_for_class = s_for_class.plus(x.minus(mu).times(x.minus(mu).transpose()));
+		}
+
+		s_for_class = s_for_class.times(1/n);
+		return s_for_class;
+	}
+
+	public static Matrix calculateS (Matrix s1, Matrix s2, List<Double> ns) {
 		double n1 = ns.get(0);
 		double n2 = ns.get(1);
 		double n = n1 + n2;
-		for (int i = 0; i < n1; i++) {
-			for (int j = 0; j < dimension; j++) {
-				data_in_c1[i][j] = data_in_c1[i][j] - mu1; 	
-			}
-		}
-		for (int i = 0; i < n2; i++) {
-			for (int j = 0; j < dimension; j++) {
-				data_in_c2[i][j] = data_in_c2[i][j] - mu2; 	
-			}
-		}
-		Matrix d1 = new Matrix(data_in_c1);
-		Matrix d2 = new Matrix(data_in_c2);
-		Matrix s1 = d1.transpose().times(d1).times(1/n1);
-		Matrix s2 = d2.transpose().times(d2).times(1/n2);
 		Matrix s = s1.times(n1/n).plus(s2.times(n2/n));
+		if (s.det() == (double) 0) {
+			int dimension = s.getColumnDimension();
+			Matrix reg = Matrix.identity(dimension, dimension).times(Math.pow(10, -9));
+			s = s.plus(reg);
+		}
+		
 		return s;
 	}
-	
-	
-	public static double calculateW0(Matrix s, List<Double> mus, List<Double> ns) {
-		double[][] s_inverse = s.inverse().getArray();
-		double mu1 = mus.get(0);
-		double mu2 = mus.get(1);
+
+	public static double calculateW0 (Matrix mu1, Matrix mu2, Matrix s, List<Double> ns) {
+
+		Matrix s_inverse = s.inverse();
 		double n1 = ns.get(0);
 		double n2 = ns.get(1);
-		double c1_part = 0;
-		double c2_part = 0;
-		double w0 = 0;
-		for (double[] s_row : s_inverse) {
-			for (double s_cell : s_row) {
-				c1_part += mu1 * s_cell * mu1;
-				c2_part += mu2 * s_cell * mu2;
-			}
-		}
-		c1_part = c1_part * (-0.5);
-		c2_part = c2_part * (0.5);
-		w0 = c1_part + c2_part + Math.log(n1/n2);
+		Matrix c1_part = mu1.transpose().times(s_inverse).times(mu1).times(-0.5);
+		Matrix c2_part = mu2.transpose().times(s_inverse).times(mu2).times(0.5);
+		double w0 = c1_part.get(0, 0) + c2_part.get(0, 0) + Math.log(n1/n2);
 		return w0;
 	}
-	
-	public static Matrix calculateW(Matrix s, List<Double> mus) {
-		double mu1 = mus.get(0);
-		double mu2 = mus.get(1);
-		double diff = mu1 - mu2;
-		Matrix s_inverse = s.inverse();
-		int dimension = s_inverse.getColumnDimension();
-		Matrix diffMatrix = new Matrix(dimension, 1, diff);
-		return s_inverse.times(diffMatrix);
-	}
 
+	public static Matrix calculateW (Matrix mu1, Matrix mu2, Matrix s) {
+		Matrix diff = mu1.minus(mu2);
+		Matrix w = s.inverse().times(diff);
+		return w;
+	}
 }

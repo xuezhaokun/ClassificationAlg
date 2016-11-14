@@ -22,59 +22,40 @@ public class Task1 {
 			double[][] testing_data_with_labels = splitted_data.get(1);
 			double[][] testing_data = ClassificationAlg.getDataFromDataWithLabels(testing_data_with_labels);
 			double[] testing_labels = ClassificationAlg.getLabelsFromDataWithLabels(testing_data_with_labels);
-			Matrix testing_matrix = new Matrix(testing_data);
-			
-			for (int n = 20; n < training_size; n = n + 20) {
-				
-				if ((n + 20) > training_size) {
+			for (int k = 1; k < 11; k++) {
+				int n = 0;
+				if (k == 10) {
 					n = training_size;
+				} else {
+					n = (training_size/10) * k;
 				}
-				
+
 				double[][] current_training_data = ClassificationAlg.getFirstNData(training_data_with_labels, n);
-				List<double[][]> splitted_class_with_labels = GenerativeAlg.splitDataByClass(current_training_data);
-				List<Double> ns = GenerativeAlg.countNs(splitted_class_with_labels);
-				List<Double> mus = GenerativeAlg.calculateMus(splitted_class_with_labels);
-				double mu1 = mus.get(0);
-				double mu2 = mus.get(1);
-				Matrix s = GenerativeAlg.calculateS(splitted_class_with_labels);
-				double w0 = GenerativeAlg.calculateW0(s, mus, ns);
-				int colDim = s.getColumnDimension();
-				Matrix mu_diff = new Matrix(colDim, 1, (mu1 - mu2));
-				Matrix w = s.inverse().times(mu_diff);
-				double[] w_vector = w.getColumnPackedCopy();
+				List<double[][]> data_by_class = GenerativeAlg.splitDataByClass(current_training_data);
+				double[][] data_in_c1 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(0));
+				double[][] data_in_c2 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(1));
+				List<Double> ns = GenerativeAlg.countNs(data_by_class);
+				List<Matrix> mus = GenerativeAlg.calculateMus(data_by_class);
+				Matrix mu1 = mus.get(0);
+				Matrix mu2 = mus.get(1);
+				Matrix s1 = GenerativeAlg.calculateSForClass(data_in_c1, mu1);
+				Matrix s2 = GenerativeAlg.calculateSForClass(data_in_c2, mu2);
+				Matrix s = GenerativeAlg.calculateS (s1, s2, ns);
+				double w0 =  GenerativeAlg.calculateW0 (mu1, mu2, s, ns);
+				Matrix w = GenerativeAlg.calculateW (mu1, mu2, s);
 				double errors = 0;
-				
-				int label_index = testing_data_with_labels[0].length;
-				int dimension = testing_data_with_labels[0].length - 1;
-				for (int j = 0; j < testing_data_with_labels.length; j++) {
-					double a_value = 0;
-					for (int m = 0; m < dimension; m++) {
-						a_value += testing_data_with_labels[j][m] * w_vector[m];
-					}
-					a_value += w0;
+				for (int j = 0; j < testing_data.length; j++) {
+					Matrix t_j = new Matrix(testing_data[j], 1).transpose();
+					//System.out.println("t_j row: " + t_j.getRowDimension() + " t_j col: " + t_j.getColumnDimension());
+					double a_value = w.transpose().times(t_j).get(0,0) + w0;
 					int predict_class = ClassificationAlg.sigmoidPredict(a_value);
-					int true_label = (int)testing_data_with_labels[j][label_index - 1];
+					int true_label = (int)testing_labels[j];
 					if (predict_class != true_label) {
 						errors++;
 					}
 				}
-//				double[] as = testing_matrix.times(w).getRowPackedCopy();
-//				double errors = 0;
-//				for (int m = 0; m < testing_label.length; m++) {
-//					double a_value = as[m] + w0;
-//					double predict_class = ClassificationAlg.sigmoidPredict(a_value);
-//					
-//					if (predict_class != testing_label[m]) {
-//						errors++;
-//					}
-//				}
-				double error_rate = errors/(double)(testing_labels.length);
-				if (n == 20) {
-					System.out.println("20 \n" + errors);
-				} else if (n == 134) {
-					System.out.println("134 \n" + errors);
-				}
-				
+
+				double error_rate = errors / (double)(testing_labels.length);
 				if (predict_results.containsKey(n)) {
 					List<Double> predicts = predict_results.get(n);
 					predicts.add(error_rate);
@@ -84,16 +65,11 @@ public class Task1 {
 					predicts.add(error_rate);
 					predict_results.put(n, predicts);
 				}
-			}	
+			}
 		}
-//		for (Map.Entry<Integer, List<Double>> entry : predict_results.entrySet()) {
-//			int key = entry.getKey();
-//		    List<Double> errors = entry.getValue();
-//			System.out.println("key: " + key + errors.size() + " \n " + Arrays.deepToString(errors.toArray()));
-//			System.out.println("##############");
-//		}
 		return predict_results;
 	}
+
 	
 	public static HashMap<Integer, double[]> getStatics(HashMap<Integer, List<Double>> predicts_errors) {
 		HashMap<Integer, double[]> error_statics = new HashMap<Integer, double[]>();
@@ -112,12 +88,12 @@ public class Task1 {
 	
 	public static void runTask1 () throws Exception{
 		String dataPath = "data/";
-		String dataA = dataPath + "B.csv";
-		String dataA_labels = dataPath + "labels-B.csv";
+		String dataA = dataPath + "A.csv";
+		String dataA_labels = dataPath + "labels-A.csv";
 		double[][] dataA_with_labels = GenerativeAlg.readData(dataA, dataA_labels);
 		HashMap<Integer, List<Double>> predicts = predict(dataA_with_labels);
 		HashMap<Integer, double[]> predicts_stat = getStatics(predicts);
-		String outputA = "results/predicts-B.csv";
+		String outputA = "results/predicts-A.csv";
 		ClassificationAlg.writeDataToFile(predicts_stat, outputA);
 		
 //		System.out.println("##############");
