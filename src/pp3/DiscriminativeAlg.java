@@ -1,12 +1,12 @@
 package pp3;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import Jama.Matrix;
 public class DiscriminativeAlg {
+	
 	public static List<Matrix> calculateRandY(Matrix w, double[][] phi) {
 		List<Matrix> r_y = new ArrayList<Matrix>();
 		int data_n = phi.length;
@@ -48,20 +48,18 @@ public class DiscriminativeAlg {
 		return sn_inverse.inverse();
 	}
 	
-	public static double calculateSigSq(double[] test, Matrix sn) {
-		Matrix x_n_1 = new Matrix(test, 1).transpose();
+	public static double calculateSigSq(Matrix x_n_1, Matrix sn) {
 		double sigmaSq = x_n_1.transpose().times(sn).times(x_n_1).get(0, 0);
 		return sigmaSq;
 	}
 	
-	public static double calculateMua(double[] test, Matrix w_map) {
-		Matrix x_n_1 = new Matrix(test, 1).transpose();
+	public static double calculateMua(Matrix x_n_1, Matrix w_map) {
 		double mua = w_map.transpose().times(x_n_1).get(0, 0);
 		return mua;
 	}
 	
 	public static int predictiveDist (double mua, double sigSq){
-		double denominator = Math.sqrt(1 + (Math.PI/8)*sigSq);
+		double denominator = Math.sqrt(1 + (Math.PI*sigSq/8));
 		double a = mua / denominator;
 		int predict = ClassificationAlg.sigmoidPredict(a);
 		return predict;
@@ -87,6 +85,7 @@ public class DiscriminativeAlg {
 	
 	public static void discriminativePredict (HashMap<Integer, List<Double>> predict_results, double[][] current_training_data_with_labels, 
 			double[][] testing_data, double[] testing_labels, int n) {
+		
 		boolean converged = false;
 		int counter = 0;
 		double[][] current_training_data = ClassificationAlg.getDataFromDataWithLabels(current_training_data_with_labels);
@@ -111,11 +110,14 @@ public class DiscriminativeAlg {
 			w_matrix = new_w;
 			counter++;
 		}
+		
 		double errors = 0;
+		System.out.println(Arrays.deepToString(y_matrix.getArray()));
+		Matrix sn = calculateSn(current_phi, r);
 		for (int j = 0; j < testing_data.length; j++) {
-			Matrix sn = calculateSn(current_phi , r);
-			double sigSq = calculateSigSq(testing_data[j] ,sn);
-			double mua = calculateMua(testing_data[j], w_matrix);
+			Matrix test_j = new Matrix(testing_data[j], 1).transpose();
+			double sigSq = calculateSigSq(test_j, sn);
+			double mua = calculateMua(test_j, w_matrix);
 			int predict_class = predictiveDist (mua, sigSq);
 			int true_label = (int)testing_labels[j];
 			if (predict_class != true_label) {
@@ -123,7 +125,6 @@ public class DiscriminativeAlg {
 			}
 		}
 		double error_rate = errors / (double)(testing_labels.length);
-		System.out.println("at training size: " + n + " coverged: " + converged + " iterate: " + counter + " error rate: " + error_rate);
 		if (predict_results.containsKey(n)) {
 			List<Double> predicts = predict_results.get(n);
 			predicts.add(error_rate);
