@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import Jama.LUDecomposition;
 import Jama.Matrix;
@@ -198,24 +199,60 @@ public class ClassificationAlg {
 		return lua.solve(identity);
 	}
 	
-	public static void writeDataToFile(HashMap<Integer, double[]> error_statics, String outputFile) throws Exception {
+	public static double[][] addW0ToData(double[][] dataset){
+		int dimension = dataset[0].length;
+		int data_length = dataset.length;
+		double[][] data_with_w0 = new double[data_length][dimension + 1];
+		for (int i = 0; i < data_length; i++) {
+			for (int j = 0; j < dimension; j++) {
+				data_with_w0[i][j] = dataset[i][j];
+			}
+			data_with_w0[i][dimension] = (double) 1;
+		}
+		return data_with_w0;
+	}
+	
+	public static void writeTask1ToFile(HashMap<Integer, double[]> error_statics, String outputFile) throws Exception {
 		PrintWriter writer  = new PrintWriter(outputFile, "UTF-8");
-		for (Map.Entry<Integer, double[]> entry : error_statics.entrySet()) {
+		Map<Integer, double[]> sorted_results = new TreeMap<Integer, double[]>(error_statics);
+		System.out.println("training size |       mean       |      standard deviation     |");
+		System.out.println("______________________________________________________________");
+		for (Map.Entry<Integer, double[]> entry : sorted_results.entrySet()) {
 			int key = entry.getKey();
 			double[] statics = entry.getValue();
+			System.out.println(key + "           " + statics[0] + "    " + statics[1]);
 			writer.println(key + "," + statics[0] + "," + statics[1]);
+		}
+		writer.close();
+	}
+	
+	public static void writeTask2ToFile(List<Double> timestamps, List<Double> error_rates, String outputFile) throws Exception {
+		PrintWriter writer  = new PrintWriter(outputFile, "UTF-8");
+		System.out.println("     time       |      error rate     |");
+		System.out.println("_______________________________________");
+		for (int i = 0; i < timestamps.size(); i++) {
+			System.out.println(timestamps.get(i) + "     " + error_rates.get(i));
+			writer.println(timestamps.get(i) + ", " + error_rates.get(i));
 		}
 		writer.close();
 	}
 	
 	public static void main(String[] args) throws Exception{
 		// TODO Auto-generated method stub
-		Task1.runTask1();
+//		
 //		long tStart = System.currentTimeMillis();
-//		Task2.runTask2();
+		System.out.println("******** Running Task 1 ********");
+		System.out.println("For each dataset I use 10 different sizes training data");
+		System.out.println("Each dataset repeats 30 times, totally 300 routines for each dataset.");
+		System.out.println("It takes around 10 - 15 minutes to finish task 1");
+		//Task1.runTask1();
+
+		System.out.println("******** Running Task 2 ********");
+		Task2.runTask2();
 //		long tEnd = System.currentTimeMillis();
 //		long tDelta = tEnd - tStart;
 //		double elapsedSeconds = tDelta / 1000.0;
-//		System.out.println("runing time ... " + elapsedSeconds);
+//		System.out.println("running time ... " + elapsedSeconds);
+		//Task2.runTask2();
 	}
 }

@@ -14,7 +14,6 @@ public class Task1 {
 		int training_size = data_size - testing_size;
 		HashMap<Integer, List<Double>> generative_predict_results = new HashMap<Integer, List<Double>>();
 		HashMap<Integer, List<Double>> discriminative_predict_results = new HashMap<Integer, List<Double>>();
-		int counter = 0;
 		for (int i = 0; i < 30; i++) {
 			double[][] shuffled_data = ClassificationAlg.shuffleData(data_with_labels);
 			List<double[][]> splitted_data = ClassificationAlg.splitTestAndTrain(shuffled_data, testing_size);
@@ -23,18 +22,16 @@ public class Task1 {
 			double[][] testing_data = ClassificationAlg.getDataFromDataWithLabels(testing_data_with_labels);
 			double[] testing_labels = ClassificationAlg.getLabelsFromDataWithLabels(testing_data_with_labels);
 			
-			for (int k = 1; k < 21; k++) {
+			for (int k = 1; k < 11; k++) {
 				int n = 0;
-				if (k == 20) {
+				if (k == 10) {
 					n = training_size;
 				} else {
-					n = (training_size/20) * k;
+					n = (training_size/10) * k;
 				}
 				double[][] current_training_data_with_labels = ClassificationAlg.getFirstNData(training_data_with_labels, n);
 				GenerativeAlg.generativePredict(generative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
 				DiscriminativeAlg.discriminativePredict(discriminative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
-				counter++;
-				System.out.println(counter);
 			}
 		}
 		List<HashMap<Integer, List<Double>>> predicts = new ArrayList<HashMap<Integer, List<Double>>>();
@@ -49,8 +46,8 @@ public class Task1 {
 		for (Map.Entry<Integer, List<Double>> entry : predicts_errors.entrySet()) {
 		    int key = entry.getKey();
 		    List<Double> errors = entry.getValue();
-		    double mean = ErrorStat.calcMean(errors); 
-		    double std = ErrorStat.calStD(errors);
+		    double mean = PerformanceStat.calcMean(errors); 
+		    double std = PerformanceStat.calStD(errors);
 		    double[] statics = new double[2];
 		    statics[0] = mean;
 		    	statics[1] = std;
@@ -61,25 +58,25 @@ public class Task1 {
 	
 	public static void runTask1 () throws Exception{
 		String dataPath = "data/";
-		String dataA = dataPath + "USPS.csv";
-		String dataA_labels = dataPath + "labels-USPS.csv";
-		double[][] dataA_with_labels = ClassificationAlg.combineData(dataA, dataA_labels);
-		List<HashMap<Integer, List<Double>>> predicts_results = predict(dataA_with_labels);
-		HashMap<Integer, List<Double>> generative_predicts = predicts_results.get(0);
-		HashMap<Integer, List<Double>> discriminative_predicts = predicts_results.get(1);
-		HashMap<Integer, double[]> generative_predicts_stat = getStatics(generative_predicts);
-		HashMap<Integer, double[]> discriminative_predicts_stat = getStatics(discriminative_predicts);
-		String outputA = "results/generative-predicts-USPS.csv";
-		String outputB = "results/discriminative-predicts-USPS.csv";
-		ClassificationAlg.writeDataToFile(generative_predicts_stat, outputA);
-		ClassificationAlg.writeDataToFile(discriminative_predicts_stat, outputB);
-		
-//		System.out.println("##############");
-//		for (Map.Entry<Integer, List<Double>> entry : predicts.entrySet()) {
-//			int key = entry.getKey();
-//		    List<Double> errors = entry.getValue();
-//			System.out.println("key: " + key + errors.size() + " \n " + Arrays.deepToString(errors.toArray()));
-//			System.out.println("##############");
-//		}
+		String[] filenames = new String[] {"A", "B", "usps"};
+		for (String filename : filenames){
+			String data_file = filename + ".csv";
+			System.out.println("---- Working on datafile: " + data_file + " ----");
+			String label_file = "labels-" + filename + ".csv";
+			String data = dataPath + data_file;
+			String data_labels = dataPath + label_file;
+			String genetrative_output = "results/generative-predicts-" + filename + ".csv";
+			String discriminative_output = "results/discriminative-predicts-" + filename + ".csv"; 
+			double[][] data_with_labels = ClassificationAlg.combineData(data, data_labels);
+			List<HashMap<Integer, List<Double>>> predicts_results = predict(data_with_labels);
+			HashMap<Integer, List<Double>> generative_predicts = predicts_results.get(0);
+			HashMap<Integer, List<Double>> discriminative_predicts = predicts_results.get(1);
+			HashMap<Integer, double[]> generative_predicts_stat = getStatics(generative_predicts);
+			HashMap<Integer, double[]> discriminative_predicts_stat = getStatics(discriminative_predicts);
+			System.out.println(">>> generative predictions statistics <<<");
+			ClassificationAlg.writeTask1ToFile(generative_predicts_stat, genetrative_output);
+			System.out.println(">>> generative predictions statistics <<<");
+			ClassificationAlg.writeTask1ToFile(discriminative_predicts_stat, discriminative_output);	
+		}
 	}
 }

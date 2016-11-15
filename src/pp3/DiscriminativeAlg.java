@@ -59,24 +59,10 @@ public class DiscriminativeAlg {
 			old_norm += Math.pow(old_array[i], 2); 
 		}
 		if ((diff_norm / old_norm) < converge_error) {
-			System.out.println((diff_norm / old_norm));
 			return true;
 		} else {
 			return false;
 		}
-	}
-	
-	public static double[][] addW0ToData(double[][] dataset){
-		int dimension = dataset[0].length;
-		int data_length = dataset.length;
-		double[][] data_with_w0 = new double[data_length][dimension + 1];
-		for (int i = 0; i < data_length; i++) {
-			for (int j = 0; j < dimension; j++) {
-				data_with_w0[i][j] = dataset[i][j];
-			}
-			data_with_w0[i][dimension] = (double) 1;
-		}
-		return data_with_w0;
 	}
 	
 	public static void discriminativePredict (HashMap<Integer, List<Double>> predict_results, double[][] current_training_data_with_labels, 
@@ -85,7 +71,7 @@ public class DiscriminativeAlg {
 		boolean converged = false;
 		int counter = 0;
 		double alpha = 0.1;
-		double[][] current_training_data = addW0ToData(ClassificationAlg.getDataFromDataWithLabels(current_training_data_with_labels));
+		double[][] current_training_data = ClassificationAlg.addW0ToData(ClassificationAlg.getDataFromDataWithLabels(current_training_data_with_labels));
 		double[] current_training_labels = ClassificationAlg.getLabelsFromDataWithLabels(current_training_data_with_labels);
 		Matrix current_phi = new Matrix(current_training_data);
 		int data_n = current_phi.getRowDimension();
@@ -112,7 +98,7 @@ public class DiscriminativeAlg {
 		Matrix s0_inverse = ClassificationAlg.ludecompForInvert(identity.times(1/alpha));
 		Matrix sn = calculateSn(current_phi, s0_inverse, r);
 		double errors = 0;
-		double[][] test_data_with_w0 = addW0ToData(testing_data);
+		double[][] test_data_with_w0 = ClassificationAlg.addW0ToData(testing_data);
 		for (int j = 0; j < test_data_with_w0.length; j++) {
 			Matrix test_j = new Matrix(test_data_with_w0[j], 1).transpose();
 			double sigSq = calculateSigSq(test_j, sn);
@@ -136,48 +122,105 @@ public class DiscriminativeAlg {
 		}
 	}
 	
-	public static void getUpdateWs(List<Matrix> ws, List<Double> update_time, double[][] training_data,  
-			Matrix t_matrix, int method_option) {
+	public static List<Matrix> getUpdateWs(List<Double> update_time, double[][] training_data_with_w0,  
+			Matrix t_matrix, int method_option, int partialGradient) {
 		boolean converged = false;
 		int counter_limit = 100;
 		if (method_option == 1) {
 			counter_limit = 6000;
 		}
 		int counter = 0;
-		
-		double[][] training_data_with_w0 = addW0ToData(training_data);
+		List<Matrix> ws = new ArrayList<Matrix>();
 		Matrix phi = new Matrix(training_data_with_w0);
 		int data_n = phi.getRowDimension();
 		int feature_n = phi.getColumnDimension();
 		
 		double[] w = new double[feature_n];
 		Arrays.fill(w, 0);
-		Matrix w0 = new Matrix(w, 1).transpose();
+		Matrix w_matrix = new Matrix(w, 1).transpose();
 		
 		double[] y = new double[data_n];
 		Arrays.fill(y, 0);
 		Matrix y_matrix = new Matrix(y, 1).transpose();
 		
 		Matrix r = Matrix.identity(data_n, data_n);
-
+		Matrix new_w = null;
 		long t_start = System.currentTimeMillis();
 		while (!converged && counter < counter_limit) {
-			List<Matrix> r_y = calculateRandY(w0, training_data_with_w0);
+			counter++;
+			List<Matrix> r_y = calculateRandY(w_matrix, training_data_with_w0);
 			r = r_y.get(0);
 			y_matrix = r_y.get(1);
-		
-			Matrix new_w = UpdateMethod.updateGradientW(phi, t_matrix, y_matrix, w0);
-			long t_end = System.currentTimeMillis();
-			long t_delta = t_end - t_start;
-			double elapsedSeconds = t_delta / 1000.0;
-			update_time.add(elapsedSeconds);
-			ws.add(new_w);
-			converged = checkConverge(new_w, w0);
-			w0 = new_w;
-			counter++;
+			
+			if(method_option == 0) {
+				new_w = UpdateMethod.updateNewtonW(phi, t_matrix, r, y_matrix, w_matrix);
+				long t_end = System.currentTimeMillis();
+				long t_delta = t_end - t_start;
+				double elapsedSeconds = Math.floor(t_delta / 1000.0 * 100) / 100;
+				update_time.add(elapsedSeconds);
+				ws.add(new_w);
+				converged = checkConverge(new_w, w_matrix);
+				w_matrix = new_w;
+			} else {
+				new_w = UpdateMethod.updateGradientW(phi, t_matrix, y_matrix, w_matrix);
+				if (partialGradient == 1) {
+					long t_end = System.currentTimeMillis();
+					long t_delta = t_end - t_start;
+					double elapsedSeconds = Math.floor(t_delta / 1000.0 * 100) / 100;
+					update_time.add(elapsedSeconds);
+					ws.add(new_w);
+					converged = checkConverge(new_w, w_matrix);
+					w_matrix = new_w;
+				} else {
+					if (counter%30 == 0) {
+						long t_end = System.currentTimeMillis();
+						long t_delta = t_end - t_start;
+						double elapsedSeconds = Math.floor(t_delta / 1000.0 * 100) / 100;
+						update_time.add(elapsedSeconds);
+						ws.add(new_w);	
+					}
+					converged = checkConverge(new_w, w_matrix);
+					w_matrix = new_w;
+					if (converged) {
+						long t_end = System.currentTimeMillis();
+						long t_delta = t_end - t_start;
+						double elapsedSeconds = Math.floor(t_delta / 1000.0 * 100) / 100;
+						update_time.add(elapsedSeconds);
+						ws.add(new_w);
+					}
+				}
+				
+			}
+
 		}
-		System.out.println(counter);
-		System.out.println(Arrays.deepToString(w0.getArray()));
+		System.out.println("counter: " + counter);
+		return ws;
+		//System.out.println(Arrays.deepToString(w_matrix.getArray()));
+	}
+	
+	public static double predictForDifferentW(Matrix w, double[][] training_data_with_w0, double[][] testing_data, double[] testing_labels) {
+		double alpha = 0.1;
+		List<Matrix> r_y = calculateRandY(w, training_data_with_w0);
+		Matrix r = r_y.get(0);
+		Matrix phi = new Matrix(training_data_with_w0);
+		int feature_n = phi.getColumnDimension();
+		Matrix identity = Matrix.identity(feature_n, feature_n);
+		Matrix s0_inverse = ClassificationAlg.ludecompForInvert(identity.times(1/alpha));
+		Matrix sn = calculateSn(phi, s0_inverse, r);	
+		double errors = 0;
+		double[][] test_data_with_w0 = ClassificationAlg.addW0ToData(testing_data);
+		for (int j = 0; j < test_data_with_w0.length; j++) {
+			Matrix test_j = new Matrix(test_data_with_w0[j], 1).transpose();
+			double sigSq = calculateSigSq(test_j, sn);
+			double mua = calculateMua(test_j, w);
+			int predict_class = predictiveDist (mua, sigSq);
+			int true_label = (int)testing_labels[j];
+			if (predict_class != true_label) {
+				errors++;
+			}
+		}
+		double error_rate = errors / (double)(testing_labels.length);
+		return error_rate;
 	}
 	
 //	public static void diffUpdateMethodPredict(List<List<Double>> method_data, double[][] training_data_with_labels, 
