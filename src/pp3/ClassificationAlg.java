@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Jama.LUDecomposition;
+import Jama.Matrix;
 
 public class ClassificationAlg {
 	/**
@@ -189,6 +191,13 @@ public class ClassificationAlg {
 		}
 	}
 	
+	public static Matrix ludecompForInvert(Matrix a) {
+		int dimension = a.getColumnDimension();
+		Matrix identity = Matrix.identity(dimension, dimension);
+		LUDecomposition lua = a.lu();
+		return lua.solve(identity);
+	}
+	
 	public static void writeDataToFile(HashMap<Integer, double[]> error_statics, String outputFile) throws Exception {
 		PrintWriter writer  = new PrintWriter(outputFile, "UTF-8");
 		for (Map.Entry<Integer, double[]> entry : error_statics.entrySet()) {
@@ -201,49 +210,12 @@ public class ClassificationAlg {
 	
 	public static void main(String[] args) throws Exception{
 		// TODO Auto-generated method stub
-//		String dataPath = "data/";
-//		String haha_data = dataPath + "haha.csv";
-//		String haha_label = dataPath + "haha-labels.csv";
-//		double[][] haha_dataset = ClassificationAlg.readData(haha_data);
-//		double[] haha_labels = ClassificationAlg.readLabels(haha_label);
-//		double[][] data_with_labels = ClassificationAlg.combineDataWithLabels(haha_dataset, haha_labels);
-//		double[][] shuffled_data = ClassificationAlg.shuffleData(data_with_labels);
-//		int data_size = shuffled_data.length;
-//		int testing_size = data_size / 3;
-//		int training_size = data_size - testing_size;
-//		System.out.println("testing size " + testing_size + " training_size " + training_size);
-//		List<double[][]> split_results = ClassificationAlg.splitTestAndTrain(shuffled_data, testing_size);
-//		System.out.println(Arrays.deepToString(split_results.get(0)));
-//		System.out.println("-------------");
-//		System.out.println(Arrays.deepToString(split_results.get(1)));
-//		System.out.println("=============");
-//		double[][] pure_data = ClassificationAlg.getDataFromDataWithLabels(data_with_labels);
-//		double[] pure_labels = ClassificationAlg.getLabelsFromDataWithLabels(data_with_labels);
-//		System.out.println(Arrays.deepToString(pure_data));
-//		System.out.println(Arrays.toString(pure_labels));
-//		System.out.println("~~~~~~~~~~~~");
-//
-//		List<double[][]> data_by_class = GenerativeAlg.splitDataByClass(data_with_labels);
-//		System.out.println(Arrays.deepToString(data_by_class.get(0)));
-//		System.out.println(Arrays.deepToString(data_by_class.get(1)));
-//		List<Double> ns = GenerativeAlg.countNs(data_by_class);
-//		System.out.println(Arrays.deepToString(ns.toArray()));
-//		System.out.println("++++++++++++++");
-//		List<Matrix> mus = GenerativeAlg.calculateMus(data_by_class);
-//		Matrix diff = mus.get(0).minus(mus.get(1));
-//		System.out.println(Arrays.toString(mus.get(0).getColumnPackedCopy()));
-//		System.out.println(Arrays.toString(mus.get(1).getColumnPackedCopy()));
-//		System.out.println("~~~~~~~~~~~~~");
-//		System.out.println(Arrays.toString(diff.getColumnPackedCopy()));
-//		System.out.println("--------------");
-//		Matrix s = GenerativeAlg.calculateS(data_by_class);
-//		System.out.println(Arrays.deepToString(s.getArray()));
-//		System.out.println("col: " + s.getColumnDimension() + " row: " + s.getRowDimension());
-//		System.out.println(Arrays.deepToString(s.inverse().getArray()));
-//		Matrix w = GenerativeAlg.calculateW(s, mus);
-//		System.out.println(Arrays.deepToString(w.getArray()));
-//		Matrix s = GenerativeAlg.calculateS(data_by_class);
-//		System.out.println(Arrays.deepToString(s.getArray()));
-		Task1.runTask1();
+
+		long tStart = System.currentTimeMillis();
+		Task2.runTask2();
+		long tEnd = System.currentTimeMillis();
+		long tDelta = tEnd - tStart;
+		double elapsedSeconds = tDelta / 1000.0;
+		System.out.println("runing time ... " + elapsedSeconds);
 	}
 }

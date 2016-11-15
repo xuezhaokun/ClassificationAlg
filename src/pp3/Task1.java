@@ -14,6 +14,7 @@ public class Task1 {
 		int training_size = data_size - testing_size;
 		HashMap<Integer, List<Double>> generative_predict_results = new HashMap<Integer, List<Double>>();
 		HashMap<Integer, List<Double>> discriminative_predict_results = new HashMap<Integer, List<Double>>();
+		int counter = 0;
 		for (int i = 0; i < 30; i++) {
 			double[][] shuffled_data = ClassificationAlg.shuffleData(data_with_labels);
 			List<double[][]> splitted_data = ClassificationAlg.splitTestAndTrain(shuffled_data, testing_size);
@@ -32,6 +33,8 @@ public class Task1 {
 				double[][] current_training_data_with_labels = ClassificationAlg.getFirstNData(training_data_with_labels, n);
 				GenerativeAlg.generativePredict(generative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
 				DiscriminativeAlg.discriminativePredict(discriminative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
+				counter++;
+				System.out.println(counter);
 			}
 		}
 		List<HashMap<Integer, List<Double>>> predicts = new ArrayList<HashMap<Integer, List<Double>>>();
@@ -61,8 +64,9 @@ public class Task1 {
 		String dataA = dataPath + "A.csv";
 		String dataA_labels = dataPath + "labels-A.csv";
 		double[][] dataA_with_labels = ClassificationAlg.combineData(dataA, dataA_labels);
-		HashMap<Integer, List<Double>> generative_predicts = predict(dataA_with_labels).get(0);
-		HashMap<Integer, List<Double>> discriminative_predicts = predict(dataA_with_labels).get(1);
+		List<HashMap<Integer, List<Double>>> predicts_results = predict(dataA_with_labels);
+		HashMap<Integer, List<Double>> generative_predicts = predicts_results.get(0);
+		HashMap<Integer, List<Double>> discriminative_predicts = predicts_results.get(1);
 		HashMap<Integer, double[]> generative_predicts_stat = getStatics(generative_predicts);
 		HashMap<Integer, double[]> discriminative_predicts_stat = getStatics(discriminative_predicts);
 		String outputA = "results/generative-predicts-A.csv";
