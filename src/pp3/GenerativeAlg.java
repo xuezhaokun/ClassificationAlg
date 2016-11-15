@@ -103,8 +103,7 @@ public class GenerativeAlg {
 	}
 
 	public static double calculateW0 (Matrix mu1, Matrix mu2, Matrix s, List<Double> ns) {
-
-		Matrix s_inverse = s.inverse();
+		Matrix s_inverse = ClassificationAlg.ludecompForInvert(s);
 		double n1 = ns.get(0);
 		double n2 = ns.get(1);
 		Matrix c1_part = mu1.transpose().times(s_inverse).times(mu1).times(-0.5);
@@ -115,7 +114,8 @@ public class GenerativeAlg {
 
 	public static Matrix calculateW (Matrix mu1, Matrix mu2, Matrix s) {
 		Matrix diff = mu1.minus(mu2);
-		Matrix w = s.inverse().times(diff);
+		Matrix s_inverse = ClassificationAlg.ludecompForInvert(s);
+		Matrix w = s_inverse.times(diff);
 		return w;
 	}
 	

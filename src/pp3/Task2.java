@@ -11,12 +11,12 @@ public class Task2 {
 		List<Double> newton_update_time = new ArrayList<Double>();
 		List<Matrix> gradient_ws = new ArrayList<Matrix>();
 		List<Double> gradient_update_time = new ArrayList<Double>();
-		double[][] current_training_data = ClassificationAlg.getDataFromDataWithLabels(training_data_with_labels);
+		double[][] training_data = ClassificationAlg.getDataFromDataWithLabels(training_data_with_labels);
 		//double[][] current_training_data = DiscriminativeAlg.addW0ToData(ClassificationAlg.getDataFromDataWithLabels(training_data_with_labels));
-		double[] current_training_labels = ClassificationAlg.getLabelsFromDataWithLabels(training_data_with_labels);
-		Matrix current_t_matrix = new Matrix(current_training_labels, 1).transpose();
+		double[] training_labels = ClassificationAlg.getLabelsFromDataWithLabels(training_data_with_labels);
+		Matrix t_matrix = new Matrix(training_labels, 1).transpose();
 		//DiscriminativeAlg.getUpdateWs(newton_ws, newton_update_time, current_training_data, current_t_matrix, 0);
-		DiscriminativeAlg.getUpdateWs(gradient_ws, gradient_update_time, current_training_data, current_t_matrix, 1);
+		DiscriminativeAlg.getUpdateWs(gradient_ws, gradient_update_time, training_data, t_matrix, 1);
 //		for (int i = 0; i < gradient_ws.size(); i++) {
 //			System.out.println(gradient_update_time.get(i));
 //			System.out.println(Arrays.deepToString(gradient_ws.get(i).getArray()));
@@ -63,6 +63,7 @@ public class Task2 {
 		double[][] testing_data = ClassificationAlg.getDataFromDataWithLabels(testing_data_with_labels);
 		double[] testing_labels = ClassificationAlg.getLabelsFromDataWithLabels(testing_data_with_labels);
 		//predictWithDiffUpdate(dataA_with_labels);
+		//System.out.println(Arrays.deepToString(training_data_with_labels));
 		getWs(training_data_with_labels);
 	}
 }

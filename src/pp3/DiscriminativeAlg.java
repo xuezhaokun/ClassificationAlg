@@ -26,32 +26,6 @@ public class DiscriminativeAlg {
 		return r_y;
 	}
 	
-	public static Matrix updateNewtonW(Matrix phi_matrix, Matrix t_matrix, Matrix r, Matrix y, Matrix oldW) {
-		int dimension = phi_matrix.getColumnDimension();
-		double alpha = 0.1;
-		Matrix identity = Matrix.identity(dimension, dimension).times(alpha);
-		Matrix hessian = identity.plus(phi_matrix.transpose().times(r).times(phi_matrix));
-		Matrix error_part1 = phi_matrix.transpose().times(y.minus(t_matrix));
-		Matrix error_part2 = oldW.times(alpha);
-		Matrix error_gradient = error_part1.plus(error_part2);
-		Matrix hessian_inverse = ClassificationAlg.ludecompForInvert(hessian);
-		Matrix update_part = hessian_inverse.times(error_gradient);
-		Matrix newW = oldW.minus(update_part);
-		return newW;
-	}
-	
-	public static Matrix updateGradientW(Matrix phi_matrix, Matrix t_matrix, Matrix y, Matrix oldW) {
-		double alpha = 0.1;
-		double eta = Math.pow(10, -3);
-		Matrix diff = y.minus(t_matrix);
-		Matrix part1 = phi_matrix.transpose().times(diff);
-		Matrix part2 = oldW.times(alpha);
-		Matrix temp = part1.plus(part2);
-		Matrix update = temp.times(eta);
-		Matrix newW = oldW.minus(update);
-		return newW;
-	}
-	
 	public static Matrix calculateSn (Matrix phi_matrix, Matrix s0_inverse, Matrix r) {
 		Matrix sn_inverse = phi_matrix.transpose().times(r).times(phi_matrix).plus(s0_inverse);
 		return ClassificationAlg.ludecompForInvert(sn_inverse);
@@ -85,6 +59,7 @@ public class DiscriminativeAlg {
 			old_norm += Math.pow(old_array[i], 2); 
 		}
 		if ((diff_norm / old_norm) < converge_error) {
+			System.out.println((diff_norm / old_norm));
 			return true;
 		} else {
 			return false;
@@ -128,7 +103,7 @@ public class DiscriminativeAlg {
 			List<Matrix> r_y = calculateRandY(w_matrix, current_training_data);
 			r = r_y.get(0);
 			y_matrix = r_y.get(1);
-			new_w = updateNewtonW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
+			new_w = UpdateMethod.updateNewtonW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
 			converged = checkConverge(new_w, w_matrix);
 			w_matrix = new_w;
 			counter++;
@@ -161,64 +136,48 @@ public class DiscriminativeAlg {
 		}
 	}
 	
-	public static void getUpdateWs(List<Matrix> ws, List<Double> update_time, double[][] current_training_data,  
-			Matrix current_t_matrix, int method_option) {
+	public static void getUpdateWs(List<Matrix> ws, List<Double> update_time, double[][] training_data,  
+			Matrix t_matrix, int method_option) {
 		boolean converged = false;
 		int counter_limit = 100;
 		if (method_option == 1) {
 			counter_limit = 6000;
 		}
 		int counter = 0;
-		double[][] current_training_data_with_w0 = addW0ToData(current_training_data);
-		Matrix current_phi = new Matrix(current_training_data_with_w0);
-		int data_n = current_phi.getRowDimension();
-		int feature_n = current_phi.getColumnDimension();
+		
+		double[][] training_data_with_w0 = addW0ToData(training_data);
+		Matrix phi = new Matrix(training_data_with_w0);
+		int data_n = phi.getRowDimension();
+		int feature_n = phi.getColumnDimension();
 		
 		double[] w = new double[feature_n];
 		Arrays.fill(w, 0);
-		Matrix w_matrix = new Matrix(w, 1).transpose();
+		Matrix w0 = new Matrix(w, 1).transpose();
+		
 		double[] y = new double[data_n];
 		Arrays.fill(y, 0);
 		Matrix y_matrix = new Matrix(y, 1).transpose();
+		
 		Matrix r = Matrix.identity(data_n, data_n);
 
 		long t_start = System.currentTimeMillis();
 		while (!converged && counter < counter_limit) {
-			List<Matrix> r_y = calculateRandY(w_matrix, current_training_data_with_w0);
+			List<Matrix> r_y = calculateRandY(w0, training_data_with_w0);
 			r = r_y.get(0);
 			y_matrix = r_y.get(1);
-			
-//			if(method_option == 0) {
-//				Matrix new_w = updateNewtonW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
-//				long t_end = System.currentTimeMillis();
-//				long t_delta = t_end - t_start;
-//				double elapsedSeconds = t_delta / 1000.0;
-//				update_time.add(elapsedSeconds);
-//				ws.add(new_w);
-//				converged = checkConverge(new_w, w_matrix);
-//				w_matrix = new_w;
-//				counter++;
-//			} else {
-				Matrix new_w = updateGradientW(current_phi, current_t_matrix, y_matrix, w_matrix);
-				long t_end = System.currentTimeMillis();
-				long t_delta = t_end - t_start;
-				double elapsedSeconds = t_delta / 1000.0;
-				update_time.add(elapsedSeconds);
-				ws.add(new_w);
-				converged = checkConverge(new_w, w_matrix);
-				w_matrix = new_w;
-				counter++;
-//			}
+		
+			Matrix new_w = UpdateMethod.updateGradientW(phi, t_matrix, y_matrix, w0);
+			long t_end = System.currentTimeMillis();
+			long t_delta = t_end - t_start;
+			double elapsedSeconds = t_delta / 1000.0;
+			update_time.add(elapsedSeconds);
+			ws.add(new_w);
+			converged = checkConverge(new_w, w0);
+			w0 = new_w;
+			counter++;
 		}
-		System.out.println(Arrays.deepToString(w_matrix.getArray()));
-//		if (method_option == 1){
-//			long t_end = System.currentTimeMillis();
-//			long t_delta = t_end - t_start;
-//			double elapsedSeconds = t_delta / 1000.0;
-//			update_time.add(elapsedSeconds);
-//			ws.add(w_matrix);
-//		}
-		System.out.println("counter: " + counter);
+		System.out.println(counter);
+		System.out.println(Arrays.deepToString(w0.getArray()));
 	}
 	
 //	public static void diffUpdateMethodPredict(List<List<Double>> method_data, double[][] training_data_with_labels, 
@@ -256,9 +215,9 @@ public class DiscriminativeAlg {
 //			y_matrix = r_y.get(1);
 //			long t_start = System.currentTimeMillis();
 //			if(method_option == 0) {
-//				new_w = updateNewtonW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
+//				new_w = UpdateMethod.updateNewtonW(current_phi, current_t_matrix, r, y_matrix, w_matrix);
 //			} else {
-//				new_w = updateGradientW(current_phi, current_t_matrix, y_matrix, w_matrix);
+//				new_w = UpdateMethod.updateGradientW(current_phi, current_t_matrix, y_matrix, w_matrix);
 //			}
 //			long t_end = System.currentTimeMillis();
 //			long t_delta = t_end - t_start;
@@ -269,24 +228,25 @@ public class DiscriminativeAlg {
 //			counter++;
 //			//System.out.println(counter);
 //			//if (method_option == 1 && counter%60 == 0){
-//				Matrix sn = calculateSn(current_phi, s0_inverse, r);	
-//				double errors = 0;
-//				double[][] test_data_with_w0 = addW0ToData(testing_data);
-//				for (int j = 0; j < test_data_with_w0.length; j++) {
-//					Matrix test_j = new Matrix(test_data_with_w0[j], 1).transpose();
-//					double sigSq = calculateSigSq(test_j, sn);
-//					double mua = calculateMua(test_j, w_matrix);
-//					int predict_class = predictiveDist (mua, sigSq);
-//					int true_label = (int)testing_labels[j];
-//					if (predict_class != true_label) {
-//						errors++;
-//					}
-//				}
-//				double error_rate = errors / (double)(testing_labels.length);
-//				error_rates.add(error_rate);
+//				
 //			//}
 //		}
-//		System.out.println("counter: " + counter);
+//		Matrix sn = calculateSn(current_phi, s0_inverse, r);	
+//		double errors = 0;
+//		double[][] test_data_with_w0 = addW0ToData(testing_data);
+//		for (int j = 0; j < test_data_with_w0.length; j++) {
+//			Matrix test_j = new Matrix(test_data_with_w0[j], 1).transpose();
+//			double sigSq = calculateSigSq(test_j, sn);
+//			double mua = calculateMua(test_j, w_matrix);
+//			int predict_class = predictiveDist (mua, sigSq);
+//			int true_label = (int)testing_labels[j];
+//			if (predict_class != true_label) {
+//				errors++;
+//			}
+//		}
+//		double error_rate = errors / (double)(testing_labels.length);
+//		//error_rates.add(error_rate);
+//		System.out.println("error: " + error_rate);
 //		method_data.add(running_time);
 //		method_data.add(error_rates);
 //	}

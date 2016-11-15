@@ -23,12 +23,12 @@ public class Task1 {
 			double[][] testing_data = ClassificationAlg.getDataFromDataWithLabels(testing_data_with_labels);
 			double[] testing_labels = ClassificationAlg.getLabelsFromDataWithLabels(testing_data_with_labels);
 			
-			for (int k = 1; k < 11; k++) {
+			for (int k = 1; k < 21; k++) {
 				int n = 0;
-				if (k == 10) {
+				if (k == 20) {
 					n = training_size;
 				} else {
-					n = (training_size/10) * k;
+					n = (training_size/20) * k;
 				}
 				double[][] current_training_data_with_labels = ClassificationAlg.getFirstNData(training_data_with_labels, n);
 				GenerativeAlg.generativePredict(generative_predict_results, current_training_data_with_labels, testing_data, testing_labels, n);
@@ -61,16 +61,16 @@ public class Task1 {
 	
 	public static void runTask1 () throws Exception{
 		String dataPath = "data/";
-		String dataA = dataPath + "A.csv";
-		String dataA_labels = dataPath + "labels-A.csv";
+		String dataA = dataPath + "USPS.csv";
+		String dataA_labels = dataPath + "labels-USPS.csv";
 		double[][] dataA_with_labels = ClassificationAlg.combineData(dataA, dataA_labels);
 		List<HashMap<Integer, List<Double>>> predicts_results = predict(dataA_with_labels);
 		HashMap<Integer, List<Double>> generative_predicts = predicts_results.get(0);
 		HashMap<Integer, List<Double>> discriminative_predicts = predicts_results.get(1);
 		HashMap<Integer, double[]> generative_predicts_stat = getStatics(generative_predicts);
 		HashMap<Integer, double[]> discriminative_predicts_stat = getStatics(discriminative_predicts);
-		String outputA = "results/generative-predicts-A.csv";
-		String outputB = "results/discriminative-predicts-A.csv";
+		String outputA = "results/generative-predicts-USPS.csv";
+		String outputB = "results/discriminative-predicts-USPS.csv";
 		ClassificationAlg.writeDataToFile(generative_predicts_stat, outputA);
 		ClassificationAlg.writeDataToFile(discriminative_predicts_stat, outputB);
 		

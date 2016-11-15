@@ -210,12 +210,12 @@ public class ClassificationAlg {
 	
 	public static void main(String[] args) throws Exception{
 		// TODO Auto-generated method stub
-
-		long tStart = System.currentTimeMillis();
-		Task2.runTask2();
-		long tEnd = System.currentTimeMillis();
-		long tDelta = tEnd - tStart;
-		double elapsedSeconds = tDelta / 1000.0;
-		System.out.println("runing time ... " + elapsedSeconds);
+		Task1.runTask1();
+//		long tStart = System.currentTimeMillis();
+//		Task2.runTask2();
+//		long tEnd = System.currentTimeMillis();
+//		long tDelta = tEnd - tStart;
+//		double elapsedSeconds = tDelta / 1000.0;
+//		System.out.println("runing time ... " + elapsedSeconds);
 	}
 }
