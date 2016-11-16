@@ -4,10 +4,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-
+/**
+ * the class to run experiments in task 1
+ * @author zhaokunxue
+ *
+ */
 public class Task1 {
 	
+	/**
+	 * make predictions with different method 
+	 * @param data_with_labels given dataset
+	 * @return a hashmap with prediction results
+	 */
 	public static List<HashMap<Integer, List<Double>>> predict(double[][] data_with_labels) { 
 		int data_size = data_with_labels.length;
 		int testing_size = data_size / 3;
@@ -40,7 +48,11 @@ public class Task1 {
 		return predicts;
 	}
 
-	
+	/**
+	 * get error rates statistics
+	 * @param predicts_errors a hashamp stores prediction error rates
+	 * @return a hashmap with error rates statistics
+	 */
 	public static HashMap<Integer, double[]> getStatics(HashMap<Integer, List<Double>> predicts_errors) {
 		HashMap<Integer, double[]> error_statics = new HashMap<Integer, double[]>();
 		for (Map.Entry<Integer, List<Double>> entry : predicts_errors.entrySet()) {
@@ -56,6 +68,10 @@ public class Task1 {
 		return error_statics;
 	}
 	
+	/**
+	 * run the experiments in task1
+	 * @throws Exception
+	 */
 	public static void runTask1 () throws Exception{
 		String dataPath = "data/";
 		String[] filenames = new String[] {"A", "B", "usps"};

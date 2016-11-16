@@ -1,0 +1,25 @@
+** It takes about 20 - 30 minutes to finish running the whole project **
+how to run:
+
+1. extract the .zip file 
+	unzip pp3.zip
+
+
+2. cd to the project directory
+	cd ClassificationAlg/
+
+
+3. run the .jar file
+	java -jar pp3.jar
+
+
+If you need to look at the code, just cd to the code directory 
+	cd src/pp3
+
+
+If you need to check the raw data I got from the project, just cd to the results directory
+	cd results
+
+The files in results have the same form as the results given in console
+
+

@@ -6,9 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import Jama.Matrix;
 
+/**
+ * The class implements generative algorithm
+ * @author zhaokunxue
+ *
+ */
 public class GenerativeAlg {
 
-
+	/**
+	 * split data by calss
+	 * @param data_with_labels given data set
+	 * @return a list with 1.data in class 1 and 2.data in class 2
+	 */
 	public static List<double[][]> splitDataByClass(double[][] data_with_labels) {
 		int dimension = data_with_labels[0].length;
 		List<double[][]> data_by_class = new ArrayList<double[][]>();
@@ -26,6 +35,11 @@ public class GenerativeAlg {
 		return data_by_class;
 	}
 	
+	/**
+	 * count the number of data in class1 and class2
+	 * @param data_by_class data in their corresponding class
+	 * @return a list with 1.number of data in class1 2. number of data in class2
+	 */
 	public static List<Double> countNs(List<double[][]> data_by_class) {
 		List<Double> ns = new ArrayList<Double>();
 		double n1 = data_by_class.get(0).length;
@@ -34,6 +48,12 @@ public class GenerativeAlg {
 		ns.add(n2);
 		return ns;
 	}
+	
+	/**
+	 * calculate mu for each calss
+	 * @param data_by_class data in their corresponding class
+	 * @return a list with 1. mu for class1 2. mu for class2
+	 */
 	public static List<Matrix> calculateMus(List<double[][]> data_by_class) {
 		double[][] data_in_c1 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(0));
 		double[][] data_in_c2 = ClassificationAlg.getDataFromDataWithLabels(data_by_class.get(1));
@@ -70,6 +90,12 @@ public class GenerativeAlg {
 		return mus;
 	}
 
+	/**
+	 * calculate s for each class
+	 * @param data_in_class data in their corresponding class
+	 * @param mu the corresponding mu
+	 * @return s for that class
+	 */
 	public static Matrix calculateSForClass (double[][] data_in_class, Matrix mu) {
 		double n = data_in_class.length;
 		int dimension = data_in_class[0].length;
@@ -88,6 +114,13 @@ public class GenerativeAlg {
 		return s_for_class;
 	}
 
+	/**
+	 * calculate s
+	 * @param s1 s for class 1
+	 * @param s2 s for class 2
+	 * @param ns the number of data in class 1 and 2
+	 * @return s
+	 */
 	public static Matrix calculateS (Matrix s1, Matrix s2, List<Double> ns) {
 		double n1 = ns.get(0);
 		double n2 = ns.get(1);
@@ -97,11 +130,18 @@ public class GenerativeAlg {
 			int dimension = s.getColumnDimension();
 			Matrix reg = Matrix.identity(dimension, dimension).times(Math.pow(10, -9));
 			s = s.plus(reg);
-		}
-		
+		}		
 		return s;
 	}
 
+	/**
+	 * calculate w0
+	 * @param mu1 mu for class 1
+	 * @param mu2 mu for class 2
+	 * @param s s 
+	 * @param ns number of data in class 1 and 2
+	 * @return w0
+	 */
 	public static double calculateW0 (Matrix mu1, Matrix mu2, Matrix s, List<Double> ns) {
 		Matrix s_inverse = ClassificationAlg.ludecompForInvert(s);
 		double n1 = ns.get(0);
@@ -112,6 +152,13 @@ public class GenerativeAlg {
 		return w0;
 	}
 
+	/**
+	 * calcualte w
+	 * @param mu1 mu for class 1
+	 * @param mu2 mu for class 2
+	 * @param s s
+	 * @return w
+	 */
 	public static Matrix calculateW (Matrix mu1, Matrix mu2, Matrix s) {
 		Matrix diff = mu1.minus(mu2);
 		Matrix s_inverse = ClassificationAlg.ludecompForInvert(s);
@@ -119,6 +166,14 @@ public class GenerativeAlg {
 		return w;
 	}
 	
+	/**
+	 * make predictions using generative method
+	 * @param predict_results prediction results
+	 * @param current_training_data_with_labels training data with labels
+	 * @param testing_data testing data
+	 * @param testing_labels testing data labels
+	 * @param n training size
+	 */
 	public static void generativePredict(HashMap<Integer, List<Double>> predict_results, double[][] current_training_data_with_labels, 
 			double[][] testing_data, double[] testing_labels, int n){
 		List<double[][]> data_by_class = splitDataByClass(current_training_data_with_labels);

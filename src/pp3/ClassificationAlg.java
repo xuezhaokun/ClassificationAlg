@@ -17,6 +17,11 @@ import java.util.TreeMap;
 import Jama.LUDecomposition;
 import Jama.Matrix;
 
+/**
+ * The main class for this project with common helper functions
+ * @author zhaokunxue
+ *
+ */
 public class ClassificationAlg {
 	/**
 	 * The function parses an input file to a list of strings
@@ -102,6 +107,13 @@ public class ClassificationAlg {
 		return data_with_labels;
 	}
 	
+	/**
+	 * combine data with labels 
+	 * @param data_file input data file name
+	 * @param label_file input label file name
+	 * @return a data with label matrix
+	 * @throws IOException
+	 */
 	public static double[][] combineData(String data_file, String label_file) throws IOException {
 		double[][] dataset = ClassificationAlg.readData(data_file);
 		double[] labels = ClassificationAlg.readLabels(label_file);
@@ -154,6 +166,12 @@ public class ClassificationAlg {
 		return results;
 	}
 	
+	/**
+	 * split the training data and the testing data
+	 * @param data a data matrix
+	 * @param n testing data size
+	 * @return a list of 2d arrays with 1.training data 2.testing data
+	 */
 	public static List<double[][]> splitTestAndTrain(double[][] data, int n) {
 		List<double[][]> split_reuslts = new ArrayList<double[][]>();
 		int data_size = data.length;
@@ -169,6 +187,11 @@ public class ClassificationAlg {
 		return split_reuslts;
 	}
 	
+	/**
+	 * shuffle the data
+	 * @param data_with_labels a 2d of the combination of data and labels
+	 * @return a shuffled 2d array
+	 */
 	public static double[][] shuffleData(double[][] data_with_labels) {
 	    List<double[]> data_records = new ArrayList<double[]>();
 	    for (double[] data_record : data_with_labels) {
@@ -178,11 +201,21 @@ public class ClassificationAlg {
 	    return data_records.toArray(new double[][]{});
 	}
 	
+	/**
+	 * sigmoid function
+	 * @param a sigmoid input
+	 * @return sigmoid result
+	 */
 	public static double sigmoid(double a) {
 		double result = 1 / (1 + Math.exp(-a));
 		return result;
 	}
 	
+	/**
+	 * make prediction based on sigmoid result
+	 * @param a sigmoid result
+	 * @return 1:class1 0:class2
+	 */
 	public static int sigmoidPredict(double a) {
 		double result = sigmoid(a);
 		if (result >= 0.5) {
@@ -192,6 +225,12 @@ public class ClassificationAlg {
 		}
 	}
 	
+	/**
+	 * use LUDecompsition to help computer the matrix inverse
+	 * which could improve the code performance
+	 * @param a an input matrix
+	 * @return the inverse of the input matrix
+	 */
 	public static Matrix ludecompForInvert(Matrix a) {
 		int dimension = a.getColumnDimension();
 		Matrix identity = Matrix.identity(dimension, dimension);
@@ -199,6 +238,11 @@ public class ClassificationAlg {
 		return lua.solve(identity);
 	}
 	
+	/**
+	 * add w0 to data
+	 * @param dataset an input dataset
+	 * @return dataset with w0 column
+	 */
 	public static double[][] addW0ToData(double[][] dataset){
 		int dimension = dataset[0].length;
 		int data_length = dataset.length;
@@ -212,6 +256,12 @@ public class ClassificationAlg {
 		return data_with_w0;
 	}
 	
+	/**
+	 * write task 1 results to output file
+	 * @param error_statics error rate statistics
+	 * @param outputFile output file name
+	 * @throws Exception
+	 */
 	public static void writeTask1ToFile(HashMap<Integer, double[]> error_statics, String outputFile) throws Exception {
 		PrintWriter writer  = new PrintWriter(outputFile, "UTF-8");
 		Map<Integer, double[]> sorted_results = new TreeMap<Integer, double[]>(error_statics);
@@ -226,33 +276,38 @@ public class ClassificationAlg {
 		writer.close();
 	}
 	
+	/**
+	 * write task 2 results to output file
+	 * @param timestamps timestamps for task2 w
+	 * @param error_rates the error rates for each w
+	 * @param outputFile output file name
+	 * @throws Exception
+	 */
 	public static void writeTask2ToFile(List<Double> timestamps, List<Double> error_rates, String outputFile) throws Exception {
 		PrintWriter writer  = new PrintWriter(outputFile, "UTF-8");
 		System.out.println("     time       |      error rate     |");
 		System.out.println("_______________________________________");
 		for (int i = 0; i < timestamps.size(); i++) {
-			System.out.println(timestamps.get(i) + "     " + error_rates.get(i));
+			System.out.println(timestamps.get(i) + "      " + error_rates.get(i));
 			writer.println(timestamps.get(i) + ", " + error_rates.get(i));
 		}
 		writer.close();
 	}
 	
+	/**
+	 * the main function to run task1 and taksk2
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws Exception{
-		// TODO Auto-generated method stub
-//		
-//		long tStart = System.currentTimeMillis();
 		System.out.println("******** Running Task 1 ********");
 		System.out.println("For each dataset I use 10 different sizes training data");
 		System.out.println("Each dataset repeats 30 times, totally 300 routines for each dataset.");
 		System.out.println("It takes around 10 - 15 minutes to finish task 1");
-		//Task1.runTask1();
+		Task1.runTask1();
 
 		System.out.println("******** Running Task 2 ********");
+		System.out.println("It takes around 10 minutes to finish task 2");
 		Task2.runTask2();
-//		long tEnd = System.currentTimeMillis();
-//		long tDelta = tEnd - tStart;
-//		double elapsedSeconds = tDelta / 1000.0;
-//		System.out.println("running time ... " + elapsedSeconds);
-		//Task2.runTask2();
 	}
 }

@@ -2,7 +2,21 @@ package pp3;
 
 import Jama.Matrix;
 
+/**
+ * the class defines update method for w
+ * @author zhaokunxue
+ *
+ */
 public class UpdateMethod {
+	/**
+	 * newton update for w
+	 * @param phi_matrix data matrix
+	 * @param t_matrix label matrix
+	 * @param r R
+	 * @param y y
+	 * @param oldW old w
+	 * @return new w updated by newton method
+	 */
 	public static Matrix updateNewtonW(Matrix phi_matrix, Matrix t_matrix, Matrix r, Matrix y, Matrix oldW) {
 		int dimension = phi_matrix.getColumnDimension();
 		double alpha = 0.1;
@@ -17,6 +31,14 @@ public class UpdateMethod {
 		return newW;
 	}
 	
+	/**
+	 * gradient update for w
+	 * @param phi_matrix data matrix
+	 * @param t_matrix label matrix
+	 * @param y y 
+	 * @param oldW old w
+	 * @return new w updated by gradient
+	 */
 	public static Matrix updateGradientW(Matrix phi_matrix, Matrix t_matrix, Matrix y, Matrix oldW) {
 		double alpha = 0.1;
 		double eta = Math.pow(10, -3);

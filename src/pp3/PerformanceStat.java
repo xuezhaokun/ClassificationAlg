@@ -3,7 +3,17 @@ package pp3;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * class to implement helper functions for calculating error rates statistics
+ * @author zhaokunxue
+ *
+ */
 public class PerformanceStat {
+	/**
+	 * calculate mean
+	 * @param errors a list of error rates
+	 * @return the mean
+	 */
 	public static double calcMean(List<Double> errors) {
 		  double sum = 0;
 		  if(!errors.isEmpty()) {
@@ -15,7 +25,11 @@ public class PerformanceStat {
 		  return sum;
 	}
 	
-	
+	/**
+	 * calculate standard deviation
+	 * @param errors a list of error rates
+	 * @return the standard deviation
+	 */
 	public static double calStD(List<Double> errors) {
         double mean = calcMean(errors);
         double temp = 0;
@@ -26,6 +40,11 @@ public class PerformanceStat {
        return Math.sqrt(variance);
 	}
 	
+	/**
+	 * calculate the mean of updating time for w
+	 * @param update_times a list of a list of updating time
+	 * @return a list of means
+	 */
 	public static List<Double> calMeanTime(List<List<Double>> update_times) {
 		int n = update_times.get(0).size();
 		List<Double> average_times = new ArrayList<Double>();
