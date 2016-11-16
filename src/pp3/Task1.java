@@ -91,7 +91,7 @@ public class Task1 {
 			HashMap<Integer, double[]> discriminative_predicts_stat = getStatics(discriminative_predicts);
 			System.out.println(">>> generative predictions statistics <<<");
 			ClassificationAlg.writeTask1ToFile(generative_predicts_stat, genetrative_output);
-			System.out.println(">>> generative predictions statistics <<<");
+			System.out.println(">>> discriminative predictions statistics <<<");
 			ClassificationAlg.writeTask1ToFile(discriminative_predicts_stat, discriminative_output);	
 		}
 	}

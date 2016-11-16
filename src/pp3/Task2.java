@@ -90,8 +90,6 @@ public class Task2 {
 			double[][] data_with_labels = ClassificationAlg.combineData(data_file, data_labels);
 			int data_size = data_with_labels.length;
 			int testing_size = data_size / 3;
-			int training_size = data_size - testing_size;
-			System.out.println(testing_size + ":" + training_size);
 			List<double[][]> splitted_data = ClassificationAlg.splitTestAndTrain(data_with_labels, testing_size);
 			double[][] training_data_with_labels = splitted_data.get(0);
 			double[][] testing_data_with_labels = splitted_data.get(1);
